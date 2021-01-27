@@ -1,0 +1,14 @@
+*.o
+screen
+term.h
+Makefile
+configure
+config.log
+config.cache
+config.status
+config.h
+comm.h
+kmapdef.c
+osdef.h
+tty.c
+

@@ -155,9 +155,9 @@
 # define MULTIUSER
 # define MAPKEYS
 # define COLOR
-# define FONT
-# define KANJI
-# define UTF8
+//# define FONT
+//# define KANJI
+//# define UTF8
 # define COLORS16
 #endif /* SIMPLESCREEN */
 
