@@ -56,14 +56,14 @@ CC=cc
 export CC
 exec $0 $configure_args
 fi
-])
+],:)
 
 AC_TRY_RUN(main(){exit(0);},,
 exec 5>&2
 eval $ac_link
 AC_NOTE(CC=$CC; CFLAGS=$CFLAGS; LIBS=$LIBS;)
 AC_NOTE($ac_compile)
-AC_MSG_ERROR(Can't run the compiler - sorry))
+AC_MSG_ERROR(Can't run the compiler - sorry),:)
 
 AC_TRY_RUN([
 main()
@@ -71,7 +71,7 @@ main()
   int __something_strange_();
   __something_strange_(0);
 }
-],AC_MSG_ERROR(Your compiler does not set the exit status - sorry))
+],AC_MSG_ERROR(Your compiler does not set the exit status - sorry),,:)
 
 AC_PROG_AWK
 
@@ -110,7 +110,7 @@ AC_ARG_ENABLE(socket-dir,
 dnl
 dnl    ****  special unix variants  ****
 dnl
-if test -n "$ISC"; then
+if test "$cross_compiling" = no && test -n "$ISC" ; then
   AC_DEFINE(ISC) LIBS="$LIBS -linet"
 fi
 
@@ -121,10 +121,11 @@ dnl AC_DEFINE(OSF1)	# this disables MIPS again....
 dnl fi
 dnl fi
 
-if test -f /sysV68 ; then
+if test "$cross_compiling" = no && test -f /sysV68 ; then
 AC_DEFINE(sysV68)
 fi
 
+if test "$cross_compiling" = no ; then
 AC_CHECKING(for MIPS)
 if test -f /lib/libmld.a || test -f /usr/lib/libmld.a || test -f /usr/lib/cmplrs/cc/libmld.a; then
 oldlibs="$LIBS"
@@ -148,6 +149,7 @@ AC_DEFINE(USE_WAIT2) LIBS="$LIBS -lbsd" ; CC="$CC -I/usr/include/bsd"
 ))
 fi
 fi
+fi
 
 
 AC_CHECKING(for Ultrix)
@@ -157,7 +159,7 @@ AC_EGREP_CPP(yes,
 #endif
 ], ULTRIX=1)
 
-if test -f /usr/lib/libpyr.a ; then
+if test "$cross_compiling" = no && test -f /usr/lib/libpyr.a ; then
 oldlibs="$LIBS"
 LIBS="$LIBS -lpyr"
 AC_CHECKING(Pyramid OSX)
@@ -373,7 +375,8 @@ main()
   exit(0);
 }
 ], AC_NOTE(- your fifos are usable) fifo=1,
-AC_NOTE(- your fifos are not usable))
+AC_NOTE(- your fifos are not usable),
+AC_NOTE(- skipping check because we are cross compiling; assuming fifos are usable) fifo=1)
 rm -f /tmp/conftest*
 
 if test -n "$fifo"; then
@@ -421,7 +424,8 @@ main()
   exit(0);
 }
 ], AC_NOTE(- your implementation is ok), 
-AC_NOTE(- you have a broken implementation) AC_DEFINE(BROKEN_PIPE) fifobr=1)
+AC_NOTE(- you have a broken implementation) AC_DEFINE(BROKEN_PIPE) fifobr=1,
+AC_NOTE(- skipping check because we are cross compiling; assuming fifo implementation is ok))
 rm -f /tmp/conftest*
 fi
 
@@ -483,7 +487,8 @@ main()
   exit(0);
 }
 ], AC_NOTE(- your sockets are usable) sock=1,
-AC_NOTE(- your sockets are not usable))
+AC_NOTE(- your sockets are not usable),
+AC_NOTE(- skipping check because we are cross compiling; assuming sockets are usable) sock=1)
 rm -f /tmp/conftest*
 
 if test -n "$sock"; then
@@ -522,7 +527,8 @@ main()
 }
 ],AC_NOTE(- you are normal),
 AC_NOTE(- unix domain sockets are not kept in the filesystem)
-AC_DEFINE(SOCK_NOT_IN_FS) socknofs=1)
+AC_DEFINE(SOCK_NOT_IN_FS) socknofs=1,
+AC_NOTE(- skipping check because we are cross compiling; assuming sockets are normal))
 rm -f /tmp/conftest*
 fi
 
@@ -649,7 +655,8 @@ main()
   exit(0);
 }
 ],AC_NOTE(- select is ok),
-AC_NOTE(- select can't count) AC_DEFINE(SELECT_BROKEN))
+AC_NOTE(- select can't count) AC_DEFINE(SELECT_BROKEN),
+AC_NOTE(- skipping check because we are cross compiling; assuming select is ok))
 
 dnl
 dnl    ****  termcap or terminfo  ****
@@ -657,6 +664,9 @@ dnl
 AC_CHECKING(for tgetent)
 AC_TRY_LINK(,tgetent((char *)0, (char *)0);,,
 olibs="$LIBS"
+LIBS="-lncurses $olibs"
+AC_CHECKING(libncurses)
+AC_TRY_LINK(,tgetent((char *)0, (char *)0);,,
 LIBS="-lcurses $olibs"
 AC_CHECKING(libcurses)
 AC_TRY_LINK(,[
@@ -678,9 +688,6 @@ AC_TRY_LINK(,tgetent((char *)0, (char *)0);,,
 LIBS="-ltinfow $olibs"
 AC_CHECKING(libtinfow)
 AC_TRY_LINK(,tgetent((char *)0, (char *)0);,,
-LIBS="-lncurses $olibs"
-AC_CHECKING(libncurses)
-AC_TRY_LINK(,tgetent((char *)0, (char *)0);,,
 LIBS="-ltinfo $olibs"
 AC_CHECKING(libtinfo)
 AC_TRY_LINK(,tgetent((char *)0, (char *)0);,,
@@ -691,33 +698,50 @@ main()
 {
  exit(strcmp(tgoto("%p1%d", 0, 1), "1") ? 0 : 1);
 }], AC_NOTE(- you use the termcap database),
-AC_NOTE(- you use the terminfo database) AC_DEFINE(TERMINFO))
+AC_NOTE(- you use the terminfo database) AC_DEFINE(TERMINFO),
+AC_NOTE(- skipping check because we are cross compiling; assuming terminfo database is used) AC_DEFINE(TERMINFO))
 AC_CHECKING(ospeed)
 AC_TRY_LINK(extern short ospeed;,ospeed=5;,,AC_DEFINE(NEED_OSPEED))
 
 dnl
 dnl    ****  PTY specific things  ****
 dnl
+if test "$cross_compiling" = no ; then
 AC_CHECKING(for /dev/ptc)
 if test -r /dev/ptc; then
 AC_DEFINE(HAVE_DEV_PTC)
 fi
+fi
 
+AC_ARG_ENABLE(svr4-ptys,
+    [  --enable-svr4-ptys      use SVR4 PTYs (default: no)]
+)
+
+if test "$enable_svr4_ptys" = "yes"; then
+  AC_NOTE(Using SVR4 PTYs)
+  AC_DEFINE(HAVE_SVR4_PTYS)
+fi
+
+echo "CC: $cross_compiling"
+echo "Enable svr4: $enable_svr4_ptys"
+
+if test "$cross_compiling" = no && test -z "$enable_svr4_ptys"; then
 AC_CHECKING(for SVR4 ptys)
-sysvr4ptys=
 if test -c /dev/ptmx ; then
 AC_TRY_LINK([],[ptsname(0);grantpt(0);unlockpt(0);],[AC_DEFINE(HAVE_SVR4_PTYS)
-sysvr4ptys=1])
+enable_svr4_ptys="yes"])
+fi
 fi
 
 AC_CHECK_FUNCS(getpt)
 
 dnl check for openpty()
-if test -z "$sysvr4ptys"; then
+if test -z "$enable_svr4_ptys"; then
 AC_CHECK_FUNCS(openpty,,
 [AC_CHECK_LIB(util,openpty, [AC_DEFINE(HAVE_OPENPTY)] [LIBS="$LIBS -lutil"])])
 fi
 
+if test "$cross_compiling" = no ; then
 AC_CHECKING(for ptyranges)
 if test -d /dev/ptym ; then
 pdir='/dev/ptym'
@@ -740,6 +764,7 @@ p0=`echo $ptys | tr ' ' '\012' | sed -e 's/^.*\(.\).$/\1/g' | sort -u | tr -d '\
 p1=`echo $ptys | tr ' ' '\012' | sed -e 's/^.*\(.\)$/\1/g'  | sort -u | tr -d '\012'`
 AC_DEFINE_UNQUOTED(PTYRANGE0,"$p0")
 AC_DEFINE_UNQUOTED(PTYRANGE1,"$p1")
+fi
 fi
 
 dnl    ****  pty mode/group handling ****
@@ -826,7 +851,8 @@ main()
     else
       AC_NOTE(- can't determine - assume ptys are world accessable)
     fi
-  ]
+  ],
+  AC_NOTE(- skipping check because we are cross compiling; assuming ptys are world accessable)
 )
 rm -f conftest_grp
 fi
@@ -887,14 +913,16 @@ fi
 dnl
 dnl    ****  loadav  ****
 dnl
+if test "$cross_compiling" = no ; then
 AC_CHECKING(for libutil(s))
 test -f /usr/lib/libutils.a && LIBS="$LIBS -lutils"
 test -f /usr/lib/libutil.a && LIBS="$LIBS -lutil"
+fi
 
 AC_CHECKING(getloadavg)
 AC_TRY_LINK(,[getloadavg((double *)0, 0);],
 AC_DEFINE(LOADAV_GETLOADAVG) load=1,
-if test -f /usr/lib/libkvm.a ; then
+if test "$cross_compiling" = no && test -f /usr/lib/libkvm.a ; then
 olibs="$LIBS"
 LIBS="$LIBS -lkvm"
 AC_CHECKING(getloadavg with -lkvm)
@@ -910,7 +938,7 @@ AC_EGREP_CPP(yes,
 #endif
 ], load=1)
 fi
-if test -z "$load" ; then
+if test -z "$load" && test "$cross_compiling" = no ; then
 AC_CHECKING(for kernelfile)
 for core in /unix /vmunix /dynix /hp-ux /xelos /dev/ksyms /kernel/unix /kernel/genunix /unicos /mach /netbsd /386bsd /dgux /bsd /stand/vmunix; do
   if test -f $core || test -c $core; then
@@ -970,7 +998,7 @@ main()
     exit(1);
   exit(0);
 }
-  ],avensym=$av;break)
+  ],avensym=$av;break,,:)
   if test "$av" = _Loadavg; then
     nlist64='#define nlist nlist64'
   fi
@@ -1103,7 +1131,7 @@ main()
 #endif
   exit(0);
 }
-],,AC_DEFINE(SYSVSIGS))
+],,AC_DEFINE(SYSVSIGS),:)
 
 fi
 
@@ -1112,13 +1140,18 @@ dnl    ****  libraries  ****
 dnl
 
 AC_CHECKING(for crypt and sec libraries)
+if test "$cross_compiling" = no ; then
 test -f /lib/libcrypt_d.a || test -f /usr/lib/libcrypt_d.a && LIBS="$LIBS -lcrypt_d"
+fi
 oldlibs="$LIBS"
 LIBS="$LIBS -lcrypt"
 AC_CHECKING(crypt)
 AC_TRY_LINK(,,,LIBS="$oldlibs")
+if test "$cross_compiling" = no ; then
 test -f /lib/libsec.a || test -f /usr/lib/libsec.a && LIBS="$LIBS -lsec"
 test -f /lib/libshadow.a || test -f /usr/lib/libshadow.a && LIBS="$LIBS -lshadow"
+fi
+
 oldlibs="$LIBS"
 LIBS="$LIBS -lsun"
 AC_CHECKING(IRIX sun library)
@@ -1183,7 +1216,7 @@ main() {
   if (strncmp(buf, "cdedef", 6))
     exit(1);
   exit(0); /* libc version works properly.  */
-}], AC_DEFINE(USEBCOPY))
+}], AC_DEFINE(USEBCOPY),,:)
 
 AC_TRY_RUN([
 #define bcopy(s,d,l) memmove(d,s,l)
@@ -1198,7 +1231,8 @@ main() {
   if (strncmp(buf, "cdedef", 6))
     exit(1);
   exit(0); /* libc version works properly.  */
-}], AC_DEFINE(USEMEMMOVE))
+}], AC_DEFINE(USEMEMMOVE),,
+  AC_NOTE(- skipping check because we are cross compiling; use memmove) AC_DEFINE(USEMEMMOVE))
 
 
 AC_TRY_RUN([
@@ -1214,7 +1248,7 @@ main() {
   if (strncmp(buf, "cdedef", 6))
     exit(1);
   exit(0); /* libc version works properly.  */
-}], AC_DEFINE(USEMEMCPY))
+}], AC_DEFINE(USEMEMCPY),,:)
 
 AC_SYS_LONG_FILE_NAMES
 
@@ -1300,7 +1334,7 @@ fi
 dnl Ptx bug workaround -- insert -lc after -ltermcap
 test -n "$seqptx" && LIBS="-ltermcap -lc -lsocket -linet -lnsl -lsec -lseq"
 
-AC_TRY_RUN(main(){exit(0);},,AC_MSG_ERROR(Can't run the compiler - internal error. Sorry.))
+AC_TRY_RUN(main(){exit(0);},,AC_MSG_ERROR(Can't run the compiler - internal error. Sorry.),:)
 
 ETCSCREENRC=
 AC_MSG_CHECKING(for the global screenrc file)

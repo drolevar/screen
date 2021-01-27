@@ -150,17 +150,17 @@
 # define POW_DETACH
 # define AUTO_NUKE
 # define PSEUDOS
-# define MULTI
-# define MULTIUSER
+//# define MULTI
+//# define MULTIUSER
 # define MAPKEYS
 # define COLOR
-# define FONT
-# define DW_CHARS
-# define ENCODINGS
-# define UTF8
+//# define FONT
+//# define DW_CHARS
+//# define ENCODINGS
+//# define UTF8
 # define COLORS16
-# define ZMODEM
-# define BLANKER_PRG
+//# define ZMODEM
+//# define BLANKER_PRG
 #endif /* SIMPLESCREEN */
 
 #undef BUILTIN_TELNET
@@ -191,7 +191,7 @@
  * If screen is installed with permissions to update /etc/utmp (such
  * as if it is installed set-uid root), define UTMPOK.
  */
-#define UTMPOK
+#undef UTMPOK
 
 /* Set LOGINDEFAULT to one (1)
  * if you want entries added to /etc/utmp by default, else set it to
