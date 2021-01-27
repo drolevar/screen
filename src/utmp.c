@@ -863,6 +863,7 @@ getlogin()
 #if defined(linux) && defined(GETUTENT)
 # undef pututline
 
+#ifdef UTMPOK
 /* aargh, linux' pututline returns void! */
 struct utmp *
 xpututline(u)
@@ -876,5 +877,7 @@ struct utmp *u;
     return u->ut_type == DEAD_PROCESS ? u : 0;
   return u->ut_type == u2->ut_type ? u : 0;
 }
-#endif
+#endif /* UTMPOK */
+
+#endif /* defined(linux) && defined(GETUTENT) */
 
