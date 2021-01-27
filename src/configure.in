@@ -670,12 +670,15 @@ if test "$enable_svr4_ptys" = "yes"; then
   AC_DEFINE(HAVE_SVR4_PTYS)
 fi
 
-if test "$cross_compiling" = no && test x"$enable_svr4_ptys" = x"" ; then
+if test "$cross_compiling" = no && test -z "$enable_svr4_ptys"; then
 AC_CHECKING(for SVR4 ptys)
 if test -c /dev/ptmx ; then
-AC_TRY_LINK([],[ptsname(0);grantpt(0);unlockpt(0);],AC_DEFINE(HAVE_SVR4_PTYS))
+AC_TRY_LINK([],[ptsname(0);grantpt(0);unlockpt(0);],[AC_DEFINE(HAVE_SVR4_PTYS)
+enable_svr4_ptys="yes"])
 fi
 fi
+
+AC_CHECK_FUNCS(getpt)
 
 if test "$cross_compiling" = no ; then
 AC_CHECKING(for ptyranges)
@@ -925,7 +928,7 @@ main()
     exit(1);
   exit(0);
 }
-  ],avensym=$av;break,,AC_NOTE(Cross-compiling))
+  ],avensym=$av;break,,:)
   if test "$av" = _Loadavg; then
     nlist64='#define nlist nlist64'
   fi

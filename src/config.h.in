@@ -592,3 +592,6 @@
 #undef PTYRANGE0
 #undef PTYRANGE1
 
+
+/* Define to 1 if you have the `getpt' function. */
+#undef HAVE_GETPT

@@ -244,10 +244,17 @@ char **ttyn;
   register int f;
   char *m, *ptsname();
   int unlockpt __P((int)), grantpt __P((int));
+#if defined(HAVE_GETPT) && defined(linux)
+  int getpt __P((void));
+#endif
   sigret_t (*sigcld)__P(SIGPROTOARG);
 
   strcpy(PtyName, "/dev/ptmx");
+#if defined(HAVE_GETPT) && (defined(linux) || defined(__GLIBC__))
+  if ((f = getpt()) == -1)
+#else
   if ((f = open(PtyName, O_RDWR | O_NOCTTY)) == -1)
+#endif
     return -1;
 
   /*
@@ -260,9 +267,15 @@ char **ttyn;
       signal(SIGCHLD, sigcld);
       close(f);
       return -1;
-    } 
+    }
   signal(SIGCHLD, sigcld);
-  strncpy(TtyName, m, sizeof(TtyName));
+  if (strlen(m) < sizeof(TtyName))
+    strcpy(TtyName, m);
+  else
+    {
+      close(f);
+      return -1;
+    }
   initmaster(f);
   *ttyn = TtyName;
   return f;
